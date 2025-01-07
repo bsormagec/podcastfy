@@ -10,7 +10,7 @@ import os
 from typing import Optional, Dict, Any, List
 import re
 
-
+from langchain_ollama import ChatOllama
 from langchain_community.chat_models import ChatLiteLLM
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.llms.llamafile import Llamafile
@@ -30,6 +30,9 @@ class LLMBackend:
     def __init__(
         self,
         is_local: bool,
+        is_ollama: bool,
+        ollama_model: str,
+        ollama_base_url: str,
         temperature: float,
         max_output_tokens: int,
         model_name: str,
@@ -45,6 +48,9 @@ class LLMBackend:
                 model_name (str): The name of the model to use.
         """
         self.is_local = is_local
+        self.is_ollama = is_ollama
+        self.ollama_model = ollama_model
+        self.ollama_base_url = ollama_base_url
         self.temperature = temperature
         self.max_output_tokens = max_output_tokens
         self.model_name = model_name
@@ -58,6 +64,12 @@ class LLMBackend:
 
         if is_local:
             self.llm = Llamafile() # replace with ollama
+        elif is_ollama:
+            self.llm = ChatOllama(
+                model=ollama_model,
+                base_url=os.getenv("OLLAMA_BASE_URL", ollama_base_url),
+                **common_params,
+            )
         elif (
             "gemini" in self.model_name.lower()
         ):  # keeping original gemini as a special case while we build confidence on LiteLLM
@@ -706,6 +718,9 @@ class ContentGenerator:
     def __init__(
         self, 
         is_local: bool=False, 
+        is_ollama: bool=False,
+        ollama_base_url: str = "http://localhost:11434",  # Add this
+        ollama_model: str = "llama2",
         model_name: str="gemini-1.5-pro-latest", 
         api_key_label: str="GEMINI_API_KEY",
         conversation_config: Optional[Dict[str, Any]] = None
@@ -743,6 +758,9 @@ class ContentGenerator:
 
         llm_backend = LLMBackend(
             is_local=is_local,
+            is_ollama=is_ollama,
+            ollama_model=ollama_model,
+            ollama_base_url=ollama_base_url,
             temperature=self.config_conversation.get("creativity", 1),
             max_output_tokens=self.content_generator_config.get(
                 "max_output_tokens", 8192

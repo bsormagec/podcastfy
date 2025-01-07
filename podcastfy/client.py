@@ -48,6 +48,9 @@ def process_content(
     conversation_config: Optional[Dict[str, Any]] = None,
     image_paths: Optional[List[str]] = None,
     is_local: bool = False,
+    is_ollama: bool = False,
+    ollama_model: str = "llama2",
+    ollama_base_url: str = "http://localhost:11434",
     text: Optional[str] = None,
     model_name: Optional[str] = None,
     api_key_label: Optional[str] = None,
@@ -83,7 +86,10 @@ def process_content(
 
             content_generator = ContentGenerator(
                 is_local=is_local,
-                model_name=model_name,
+                is_ollama=is_ollama,
+                ollama_base_url=ollama_base_url,
+                ollama_model=ollama_model,
+                model_name=model_name or ollama_model,  # Use ollama_model if model_name not provided
                 api_key_label=api_key_label,
                 conversation_config=conv_config.to_dict()
             )
@@ -152,6 +158,21 @@ def main(
     urls: list[str] = typer.Option(None, "--url", "-u", help="URLs to process"),
     file: typer.FileText = typer.Option(
         None, "--file", "-f", help="File containing URLs, one per line"
+    ),
+    is_ollama: bool = typer.Option(
+        False, 
+        "--ollama", 
+        help="Use Ollama for LLM backend. Requires Ollama server running."
+    ),
+    ollama_model: str = typer.Option(
+        "llama2", 
+        "--ollama-model", 
+        help="Ollama model to use (default: llama2)"
+    ),
+    ollama_base_url: str = typer.Option(
+        "http://localhost:11434",
+        "--ollama-base-url",
+        help="Base URL for Ollama API (default: http://localhost:11434)",
     ),
     transcript: typer.FileText = typer.Option(
         None, "--transcript", "-t", help="Path to a transcript file"
@@ -227,6 +248,9 @@ def main(
                 conversation_config=conversation_config,
                 config=config,
                 is_local=is_local,
+                is_ollama=is_ollama,
+                ollama_model=ollama_model,
+                ollama_base_url=ollama_base_url,
                 text=text,
                 model_name=llm_model_name,
                 api_key_label=api_key_label,
@@ -251,6 +275,9 @@ def main(
                 conversation_config=conversation_config,
                 image_paths=image_paths,
                 is_local=is_local,
+                is_ollama=is_ollama,
+                ollama_model=ollama_model,
+                ollama_base_url=ollama_base_url,
                 text=text,
                 model_name=llm_model_name,
                 api_key_label=api_key_label,
@@ -284,6 +311,9 @@ def generate_podcast(
     conversation_config: Optional[Dict[str, Any]] = None,
     image_paths: Optional[List[str]] = None,
     is_local: bool = False,
+    is_ollama: bool = False,
+    ollama_model: str = "llama2",
+    ollama_base_url: str = "http://localhost:11434",
     text: Optional[str] = None,
     llm_model_name: Optional[str] = None,
     api_key_label: Optional[str] = None,
@@ -351,6 +381,9 @@ def generate_podcast(
                 config=default_config,
                 conversation_config=conversation_config,
                 is_local=is_local,
+                is_ollama=is_ollama,
+                ollama_model=ollama_model,
+                ollama_base_url=ollama_base_url,
                 text=text,
                 model_name=llm_model_name,
                 api_key_label=api_key_label,
@@ -377,6 +410,9 @@ def generate_podcast(
                 conversation_config=conversation_config,
                 image_paths=image_paths,
                 is_local=is_local,
+                is_ollama=is_ollama,
+                ollama_model=ollama_model,
+                ollama_base_url=ollama_base_url,
                 text=text,
                 model_name=llm_model_name,
                 api_key_label=api_key_label,
